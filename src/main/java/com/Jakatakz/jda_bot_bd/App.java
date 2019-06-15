@@ -16,6 +16,7 @@ import commands.Calculate;
 import commands.Help;
 import commands.Invite;
 import commands.UserInfo;
+import commands.displayMembers;
 
 public class App 
 {
@@ -42,6 +43,7 @@ public class App
         jda1.addEventListener(new Invite());
         jda1.addEventListener(new UserInfo());
         jda1.addEventListener(new BanWord());
+        jda1.addEventListener(new displayMembers());
         
         jda1.addEventListener(new Filter());
     }

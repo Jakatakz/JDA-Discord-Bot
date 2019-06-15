@@ -10,7 +10,6 @@ import net.dv8tion.jda.core.hooks.ListenerAdapter;
 //contains list of banned words, and get/set methods for the banned words list. changes banned words to *
 public class Filter extends ListenerAdapter
 {		
-	//BanWord bw = new BanWord();
 	private ArrayList<String> bannedWordsCopy = BanWord.getBannedWords();
 	
 	@Override
@@ -38,7 +37,7 @@ public class Filter extends ListenerAdapter
 	}
 	
 	//get user who said ban word and add a warning up to 3 until timeout'd from channel
-	//dont add warning counter , just warning for first offense
+	//dont add warning counter for first time, just warning for first offense, time limit until refresh 1 week
 	
 	public void isBannedWord(String[] message_param, ArrayList<String> bannedWordsCopy_p, GuildMessageReceivedEvent event_p) throws InterruptedException
 	{
