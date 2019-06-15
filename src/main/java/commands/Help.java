@@ -13,6 +13,8 @@ public class Help extends ListenerAdapter
 		if (message[0].equalsIgnoreCase("!help") && message.length == 1)
 		{
 			event.getChannel().sendMessage("COMMANDS\n!calculate [add/sub] [number] [number]\n"
+					+ "!invite (creates invite link for this discord)\n"
+					+ "!user [name]  (creates an embed of various information about this user)\n"
 					+ "other commands coming...").queue();
 		}
 		
