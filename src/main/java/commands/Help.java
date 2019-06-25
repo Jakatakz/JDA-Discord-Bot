@@ -15,8 +15,11 @@ public class Help extends ListenerAdapter
 			event.getChannel().sendMessage("COMMANDS\n!calculate [add/sub] [number] [number]\n"
 					+ "!invite (creates invite link for this discord)\n"
 					+ "!user [name]  (creates an embed of various information about this user)\n"
-					+ "!banw [word]"
-					+ "!members or !realMembers"
+					+ "!banw [word] / banw list\n"
+					+ "!members or !realMembers\n"
+					+ "!halp\n"
+					+ "!server/serverinfo\n"
+					+ "!invite create\n"
 					+ "other commands coming...").queue();
 		}
 		

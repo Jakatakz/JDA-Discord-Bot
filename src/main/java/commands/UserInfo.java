@@ -20,7 +20,7 @@ public class UserInfo extends ListenerAdapter
 		}
 		else if (message.length == 2 && message[0].equalsIgnoreCase("!user"))
 		{
-			String userName = message[1];
+			String userName = message[1];	//bug, use !realmembers info not !members
 			User user = event.getGuild().getMembersByName(userName, true).get(0).getUser();
 			String avatar = user.getAvatarUrl();
 			EmbedBuilder eb = new EmbedBuilder();
