@@ -14,6 +14,7 @@ import java.time.LocalTime;
 
 import com.jagrosh.jdautilities.command.CommandClient;
 import com.jagrosh.jdautilities.command.CommandClientBuilder;
+import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 
 import commands.BanWord;
 import commands.Calculate;
@@ -23,21 +24,30 @@ import commands.Image;
 import commands.Invite;
 import commands.ServerInfo;
 import commands.UserInfo;
+import commands.UserInfoCommand;
 
 public class App 
 {
     public static void main( String[] args ) throws Exception
     {
         JDA jda1 = new JDABuilder("NTc2NDY4MjA1MDIzNzg5MDc4.XNXCxA.bK8AgWwaG4jNov1ErhvIg1BHncY").build();
+        
+        EventWaiter waiter = new EventWaiter();
+        
+        
+        //jda utilities commands
         CommandClientBuilder builder = new CommandClientBuilder();
         builder.setOwnerId("576468205023789078");
         builder.setPrefix("!");
         builder.setHelpWord("halp");
         builder.addCommand(new ServerInfo());
         builder.addCommand(new Image());
+        builder.addCommand(new UserInfoCommand(waiter));
         
+        //jda utilities commands
         CommandClient client = builder.build();
         jda1.addEventListener(client);
+        jda1.addEventListener(waiter);
         
        // getConnection();
      
