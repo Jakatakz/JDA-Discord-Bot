@@ -4,12 +4,17 @@ import events.CategoryCreate;
 import events.NickChangeEvent;
 import events.StatusEvent;
 import events.TextChannelCreate;
+import events.UserJoinServerWelcome;
+//import events.UserJoinServerWelcome;
 import net.dv8tion.jda.core.JDA;
 import net.dv8tion.jda.core.JDABuilder;
 
 import java.sql.Connection;
+import java.sql.Driver;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.Statement;
 import java.time.LocalTime;
 
 import com.jagrosh.jdautilities.command.CommandClient;
@@ -31,9 +36,10 @@ public class App
     public static void main( String[] args ) throws Exception
     {
         JDA jda1 = new JDABuilder("NTc2NDY4MjA1MDIzNzg5MDc4.XNXCxA.bK8AgWwaG4jNov1ErhvIg1BHncY").build();
-        
+     
         EventWaiter waiter = new EventWaiter();
         
+        //get connection to database
         
         //jda utilities commands
         CommandClientBuilder builder = new CommandClientBuilder();
@@ -63,6 +69,7 @@ public class App
         jda1.addEventListener(new CategoryCreate());
         jda1.addEventListener(new NickChangeEvent());
         jda1.addEventListener(new TextChannelCreate());
+        jda1.addEventListener(new UserJoinServerWelcome());
         
         //commands
         jda1.addEventListener(new Calculate());

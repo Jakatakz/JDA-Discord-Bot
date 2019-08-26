@@ -48,5 +48,6 @@
 			<name>jcenter-bintray</name>
 			<url>http://jcenter.bintray.com</url>
 		</repository>
+		
 	</repositories>
 </project>
