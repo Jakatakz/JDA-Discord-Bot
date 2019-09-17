@@ -9,6 +9,7 @@ import net.dv8tion.jda.core.hooks.ListenerAdapter;
 
 public class DisplayMembers extends ListenerAdapter {
 
+	@Override
 	public void onGuildMessageReceived(GuildMessageReceivedEvent event)
 	{
 		Guild guild = event.getGuild();
@@ -17,7 +18,7 @@ public class DisplayMembers extends ListenerAdapter {
 		String[] message = event.getMessage().getContentRaw().split(" ");
 		
 		//get users by nickname
-		if (message[0].equalsIgnoreCase("!members") && message.length == 1)
+		if (message[0].equalsIgnoreCase("!members") && message.length == 1 && event.getAuthor().getId().contains("129725468206170112"))
 		{
 			for (Member m: membersInDiscord)
 			{
@@ -28,11 +29,12 @@ public class DisplayMembers extends ListenerAdapter {
 			}
 		}
 			//get actual users, no nick
-		if (message[0].equalsIgnoreCase("!realMembers") && message.length == 1)
+		if (message[0].equalsIgnoreCase("!realMembers") && message.length == 1  && event.getAuthor().getId().contains("129725468206170112"))
 		{
 			for (Member m: membersInDiscord)
 			{
-				event.getChannel().sendMessage(m.getUser().getName() + "\n").queue();
+				event.getChannel().sendMessage(m.getEffectiveName() + "\n").queue();
+				//event.getChannel().sendMessage(m.getUser().getName() + "\n").queue();
 			}
 		}
 	}

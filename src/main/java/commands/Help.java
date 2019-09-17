@@ -14,13 +14,15 @@ public class Help extends ListenerAdapter
 		{
 			event.getChannel().sendMessage("COMMANDS\n!calculate [add/sub] [number] [number]\n"
 					+ "!invite (creates invite link for this discord)\n"
-					+ "!user [name]  (creates an embed of various information about this user)\n"
-					+ "!banw [word] / banw list\n"
-					+ "!members or !realMembers\n"
 					+ "!halp\n"
-					+ "!server/serverinfo\n"
 					+ "!invite create\n"
-					+ "other commands coming...").queue();
+					+ "!ban badger (kick badger from the discord, has a time limit)\n"
+					+ "!cban badger (show time until someone can ban badger again)\n\n"
+					+ "FOR BADGER:\n=============\n"
+					+ "!badgerban on (makes people able to ban badger)\n"
+					+ "!badgerban off (makes people unable to ban badger)\n"
+					+ "!rban badger (makes it so badger is bannable immediately again)\n============"
+					+ "\nother commands coming...").queue();
 		}
 		
 	}

@@ -4,11 +4,14 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import commands.BanWord;
 import net.dv8tion.jda.core.entities.Member;
+import net.dv8tion.jda.core.entities.TextChannel;
 import net.dv8tion.jda.core.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.core.hooks.ListenerAdapter;
 
@@ -55,14 +58,18 @@ public class Filter extends ListenerAdapter
 			{
 				if (message_param[i].contains(bannedWordsCopy.get(k)))
 				{ 
-					String offender = event_p.getAuthor().getName();
-					String offenderNick = event_p.getMember().getNickname();
+					//String offender = event_p.getAuthor().getName();
+					//String offenderNick = event_p.getMember().getNickname();
+					String discriminator = event_p.getAuthor().getDiscriminator();
 					
-					long warningsOffender = checkWarningBan(offender, offenderNick);
+					//updates mysql users table 
+					checkAndAddWarningAndBan(discriminator, event_p);
+					
+					//long warningsOffender = checkWarningBan(discriminator, event_p);
 					//get warning integer and add it to method addWarnings so u can add it to database
 					
 					//update users warnings
-					addWarnings(offender, offenderNick, warningsOffender);
+					//addWarnings(discriminator, warningsOffender);
 					
 					String starBannedWord = (bannedWordsCopy.get(k)).replaceAll(".", "#");
 					
@@ -74,49 +81,111 @@ public class Filter extends ListenerAdapter
 		}
 	}
 	
-		//check if perma banned or warnings >3, if >3 ban user
-		public long checkWarningBan(String offender, String offenderNick)
+		//adds warnings, bans if exceeds warnings, perma bans are seperate
+		public void checkAndAddWarningAndBan(String discriminator, GuildMessageReceivedEvent event_p)
 		{
-			long offenderWarnings = 1;
+			
+			long offenderWarnings = getOffenderWarningCount(discriminator);
+			
 			try
 			{
-			Statement stmt = conn.createStatement();
-			String sql = "SELECT warnings FROM users WHERE name = '" + offender + "'";
-			ResultSet rst = stmt.executeQuery(sql);
-			while (rst.next())
-			{
-				System.out.println(offenderWarnings);
-				offenderWarnings = rst.getInt("warnings");
-				
-				//WARNINGS
-				//for refreshing warnings, have longer refresh time based on how high warning is.
-				
-				//if warnings is already 3, temp ban user, 
-				//increase length of ban based on how many bans theyve had in past.
-				//but refresh warnings to 0 each time their ban expires but keep ban count to calculate length
-				
+			Statement stmtOW = conn.createStatement();
+				if (offenderWarnings == 5)
+				{
+					TextChannel notificationsChannel = event_p.getGuild().getTextChannelsByName("notifications", true).get(0);
+					notificationsChannel.sendMessage(event_p.getMember().getEffectiveName() + " has been banned " + event_p.getGuild().getOwner().getAsMention()).queue();
+					Date date = new Date();
+					Timestamp banTimeStamp = new Timestamp(date.getTime());
+					event_p.getGuild().getController().ban(event_p.getMember(), 0, " used too many banned words").queue();
+					event_p.getChannel().sendMessage(event_p.getMember().getEffectiveName() + "(" + event_p.getMember().getNickname() + ") has been banned").queue();
+					
+					
+					
+					String sqlWarning5 = "UPDATE users "
+							+ "SET warnings = 6, banned = 'yes', bantimestamp = '" + banTimeStamp
+							+ "' WHERE discriminator = '" + discriminator + "';";
+					stmtOW.executeUpdate(sqlWarning5);
+				}
 				
 				//if warnings is ALREADY 2, warn user they now have 3/3 warnings (refreshes in (time left for refresh))
 				//warn user theyre about to be banned for (ban time length) 
-				
-				//if warnings is already 1, warn user they have 2/3 warnings (refreshes in (time left for refresh))
-				
-				//if warnings is already 0, warn user they have 1/3 warnings (refreshes in (time left for refresh))
+				else if (offenderWarnings == 4)
+				{
+					event_p.getChannel().sendMessage(event_p.getAuthor().getAsMention() + " you have 1 warning left before being banned, warnings refresh monday").queue();
+					
+					String sqlWarning4 = "UPDATE users "
+							+ "SET warnings = 5 "
+							+ "WHERE discriminator = '" + discriminator + "';";
+					stmtOW.executeUpdate(sqlWarning4);
+				}
+				else if (offenderWarnings >= 0 && offenderWarnings < 4)
+				{
+					event_p.getChannel().sendMessage(event_p.getAuthor().getAsMention() + " stop using banned words").queue();
+					if ( offenderWarnings == 3)
+					{
+						String sqlWarning3 = "UPDATE users "
+								+ "SET warnings = 4 "
+								+ "WHERE discriminator = '" + discriminator + "';";
+						stmtOW.executeUpdate(sqlWarning3);
+					}
+					else if ( offenderWarnings == 2)
+					{
+						String sqlWarning2 = "UPDATE users "
+								+ "SET warnings = 3 "
+								+ "WHERE discriminator = '" + discriminator + "';";
+						stmtOW.executeUpdate(sqlWarning2);
+						
+					} else if ( offenderWarnings == 1)
+					{
+						String sqlWarning1 = "UPDATE users "
+								+ "SET warnings = 2 "
+								+ "WHERE discriminator = '" + discriminator + "';";
+						stmtOW.executeUpdate(sqlWarning1);
+					} 
+					else if (offenderWarnings == 0)
+					{
+						String sqlWarning0 = "UPDATE users"
+								+ " SET warnings = 1 "
+								+ "WHERE discriminator = '" + discriminator +"';";
+						stmtOW.executeUpdate(sqlWarning0);
+						//stmt.executeUpdate(sqlWarning0);
+						
+					}
+				}
 			}
-			System.out.println("offender Warnings: " + offenderWarnings);
-			//return offenderWarnings;
+			catch (Exception e)
+			{
+				e.printStackTrace();
+				System.out.println("chk offender warning method");
+			}
+			}
 			
 			
+		
+		
+		
+		public long getOffenderWarningCount(String discriminator)
+		{
+			long offenderWarnings = 0;
+			try
+			{
+			//Statement stmt = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
+			Statement stmt = conn.createStatement();
+			String sql = "SELECT warnings FROM users WHERE discriminator = '" + discriminator + "'";
+			ResultSet rst = stmt.executeQuery(sql);
+				while (rst.next())
+				{
+					offenderWarnings = rst.getInt("warnings");
+					return offenderWarnings;
+				}
 			}
 			catch (Exception ex)
 			{
 				ex.printStackTrace();
-				System.out.println("heref2");
+				System.out.println("hereGetOffenderWarningCount()");
 			}
-			System.out.println("offender Warnings: " + offenderWarnings);
 			return offenderWarnings;
 		}
-	
 		//add warning
 //		public void addWarnings(String offender, String offenderNick)
 //		{
@@ -147,35 +216,23 @@ public class Filter extends ListenerAdapter
 		
 		
 		
-	//add warning
-	public void addWarnings(String offender, String offenderNick, long warningsOfOffender)
-	{
-		try
-		{
-		//PreparedStatement prepStat = conn.prepareStatement("insert into users (name, nickname, warnings, banned) " 
-		//+ "values (?, ?, ?, ?)");
-		PreparedStatement prepStat = conn.prepareStatement("UPDATE users "
-				+ "SET warnings = ? "
-				+ "WHERE name = ?");
-			//+ "values (?, ?)");
-		//prepStat.setString(1, offender);
-		//prepStat.setString(2, offenderNick);
+	/*
+	 * //add warning public void addWarnings(String discriminator, long
+	 * warningsOfOffender) { try { //PreparedStatement prepStat =
+	 * conn.prepareStatement("insert into users (name, nickname, warnings, banned) "
+	 * //+ "values (?, ?, ?, ?)"); PreparedStatement prepStat =
+	 * conn.prepareStatement("UPDATE users " + "SET warnings = ? " +
+	 * "WHERE name = ?"); //+ "values (?, ?)"); //prepStat.setString(1, offender);
+	 * //prepStat.setString(2, offenderNick);
+	 * 
+	 * prepStat.setLong(1, warningsOfOffender+1); //need to make checkwarningban
+	 * return an integer for warning and give it to this method
+	 * 
+	 * prepStat.setString(2, offender); //prepStat.setString(4, "no?");
+	 * prepStat.executeUpdate(); System.out.println("added warnings"); } catch
+	 * (Exception ex) { ex.printStackTrace(); System.out.println("heref3"); } }
+	 */
 		
-		prepStat.setLong(1, warningsOfOffender+1);		
-		//need to make checkwarningban return an integer for warning and give it to this method
-		
-		prepStat.setString(2, offender);
-		//prepStat.setString(4, "no?");
-		prepStat.executeUpdate();
-		System.out.println("added warnings");
-		}
-		catch (Exception ex)
-		{
-			ex.printStackTrace();
-			System.out.println("heref3");
-		}
-	}
-	
 	//if the table is dropped or its an empty set , this repopulates the user table, everythings new, bans removed
 	public void populateFirstTimeUsersTable(GuildMessageReceivedEvent event)
 	{
